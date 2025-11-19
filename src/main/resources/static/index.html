@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub YAML Auto Updater</title>
+</head>
+<body>
+<h2>一键修改 CPU limit 并创建 PR</h2>
+
+<label>Repo (owner/repo): <input id="repo" value="JessyBi/my-repo"></label><br/>
+<label>Base branch: <input id="baseBranch" value="main"></label><br/>
+<label>File path: <input id="filePath" value="k8s/deployment.yaml"></label><br/>
+<label>Old CPU: <input id="oldCpu" value="3000m"></label><br/>
+<label>New CPU: <input id="newCpu" value="200m"></label><br/>
+
+<button onclick="doUpdate()">一键更新并创建 PR</button>
+
+<p id="result"></p>
+
+<script>
+    async function doUpdate() {
+        const body = {
+            repoFullName: document.getElementById('repo').value,
+            baseBranch: document.getElementById('baseBranch').value,
+            filePath: document.getElementById('filePath').value,
+            oldCpu: document.getElementById('oldCpu').value,
+            newCpu: document.getElementById('newCpu').value
+        };
+
+        const resElem = document.getElementById('result');
+        resElem.innerText = '处理中...';
+
+        try {
+            const resp = await fetch('/api/github/update-cpu', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            const text = await resp.text();
+            if (resp.ok) {
+                resElem.innerHTML = 'PR created: <a href="' + text + '" target="_blank">' + text + '</a>';
+            } else {
+                resElem.innerText = 'Error: ' + text;
+            }
+        } catch (e) {
+            resElem.innerText = 'Request error: ' + e;
+        }
+    }
+</script>
+
+</body>
+</html>
