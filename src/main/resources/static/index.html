@@ -1,52 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>GitHub YAML Auto Updater</title>
+    <title>GitHub YAML 修改器</title>
+    <style>
+        body { font-family: sans-serif; padding: 50px; max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 20px; background-color: #0366d6; color: white; border: none; cursor: pointer; width: 100%; }
+        button:hover { background-color: #0255b3; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; display: none; }
+        .hint { font-size: 0.8em; color: #666; }
+    </style>
 </head>
 <body>
-<h2>一键修改 CPU limit 并创建 PR</h2>
 
-<label>Repo (owner/repo): <input id="repo" value="JessyBi/my-repo"></label><br/>
-<label>Base branch: <input id="baseBranch" value="main"></label><br/>
-<label>File path: <input id="filePath" value="k8s/deployment.yaml"></label><br/>
-<label>Old CPU: <input id="oldCpu" value="3000m"></label><br/>
-<label>New CPU: <input id="newCpu" value="200m"></label><br/>
+<h2>📝 GitHub 文件快速追加工具</h2>
 
-<button onclick="doUpdate()">一键更新并创建 PR</button>
+<div class="form-group">
+    <label>GitHub Token:</label>
+    <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+</div>
 
-<p id="result"></p>
+<div class="form-group">
+    <label>GitHub 文件链接 (URL):</label>
+    <input type="text" id="ghUrl" placeholder="https://github.com/user/repo/blob/main/config.yaml">
+    <div class="hint">直接复制浏览器地址栏的链接即可</div>
+</div>
+
+<div class="form-group">
+    <label>要追加的代码:</label>
+    <input type="text" id="lineToAdd" placeholder="例如:  new_config: true">
+</div>
+
+<button onclick="submitChange()">提交修改</button>
+
+<div id="result"></div>
 
 <script>
-    async function doUpdate() {
-        const body = {
-            repoFullName: document.getElementById('repo').value,
-            baseBranch: document.getElementById('baseBranch').value,
-            filePath: document.getElementById('filePath').value,
-            oldCpu: document.getElementById('oldCpu').value,
-            newCpu: document.getElementById('newCpu').value
-        };
+    async function submitChange() {
+        const token = document.getElementById('ghToken').value;
+        const ghUrl = document.getElementById('ghUrl').value; // 获取 GitHub Link
+        const lineToAdd = document.getElementById('lineToAdd').value;
+        const resultDiv = document.getElementById('result');
 
-        const resElem = document.getElementById('result');
-        resElem.innerText = '处理中...';
+        if (!token || !ghUrl) {
+            alert("请填写 Token 和 GitHub 链接");
+            return;
+        }
+
+        resultDiv.style.display = 'block';
+        resultDiv.innerText = '处理中...';
+        resultDiv.style.backgroundColor = '#f0f0f0';
 
         try {
-            const resp = await fetch('/api/github/update-cpu', {
+            const response = await fetch('/api/add-config', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(body)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    githubUrl: ghUrl,  // 对应后端的字段名
+                    lineToAdd: lineToAdd,
+                    token: token
+                })
             });
-            const text = await resp.text();
-            if (resp.ok) {
-                resElem.innerHTML = 'PR created: <a href="' + text + '" target="_blank">' + text + '</a>';
-            } else {
-                resElem.innerText = 'Error: ' + text;
-            }
-        } catch (e) {
-            resElem.innerText = 'Request error: ' + e;
+
+            const text = await response.text();
+            resultDiv.innerText = text;
+            resultDiv.style.backgroundColor = response.ok ? "#e6fffa" : "#ffe6e6";
+        } catch (error) {
+            resultDiv.innerText = '请求出错: ' + error;
         }
     }
 </script>
-
 </body>
 </html>

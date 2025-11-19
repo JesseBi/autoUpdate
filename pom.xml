@@ -14,6 +14,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.6</version> <!-- 版本记得自己写 -->
+    </parent>
+
+
     <dependencies>
         <!-- Spring Web -->
         <dependency>
@@ -26,6 +33,13 @@
             <groupId>org.kohsuke</groupId>
             <artifactId>github-api</artifactId>
             <version>1.318</version> <!-- 版本号按你项目来 -->
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
